@@ -495,7 +495,7 @@ def index():
                           stats=stats,
                           categories=categories,
                           concerns=concerns,
-                          title='Executive Dashboard')
+                          title='Oversight Committee Portal')
 
 
 @app.route('/overview')
@@ -1569,6 +1569,86 @@ def analytics():
                           title='Analytics',
                           category_data=category_data,
                           status_data=status_data)
+
+
+@app.route('/financials')
+def financials():
+    """Financial summary with Marion County data."""
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Get expenditures summary
+    cursor.execute('''
+        SELECT
+            account_name,
+            total_amount,
+            general_fund,
+            special_revenue,
+            capital_projects
+        FROM expenditures_summary
+        ORDER BY total_amount DESC
+        LIMIT 10
+    ''')
+    top_expenditures = cursor.fetchall()
+
+    # Get total expenditures by fund type
+    cursor.execute('''
+        SELECT
+            SUM(general_fund) as general,
+            SUM(special_revenue) as special_revenue,
+            SUM(debt_service) as debt_service,
+            SUM(capital_projects) as capital_projects,
+            SUM(enterprise) as enterprise,
+            SUM(internal_service) as internal_service,
+            SUM(total_amount) as total
+        FROM expenditures_summary
+    ''')
+    exp_by_fund = cursor.fetchone()
+
+    # Get revenues summary
+    cursor.execute('''
+        SELECT
+            account_name,
+            total_amount,
+            general_fund,
+            special_revenue,
+            capital_projects
+        FROM revenues_summary
+        ORDER BY total_amount DESC
+        LIMIT 10
+    ''')
+    top_revenues = cursor.fetchall()
+
+    # Get total revenues by fund type
+    cursor.execute('''
+        SELECT
+            SUM(general_fund) as general,
+            SUM(special_revenue) as special_revenue,
+            SUM(debt_service) as debt_service,
+            SUM(capital_projects) as capital_projects,
+            SUM(enterprise) as enterprise,
+            SUM(internal_service) as internal_service,
+            SUM(total_amount) as total
+        FROM revenues_summary
+    ''')
+    rev_by_fund = cursor.fetchone()
+
+    # Calculate summary stats
+    total_revenue = rev_by_fund['total'] if rev_by_fund else 0
+    total_expenditure = exp_by_fund['total'] if exp_by_fund else 0
+    net_position = total_revenue - total_expenditure
+    budget_balance = (net_position / total_revenue * 100) if total_revenue > 0 else 0
+
+    return render_template('surtax/financials.html',
+                          top_expenditures=top_expenditures,
+                          top_revenues=top_revenues,
+                          exp_by_fund=exp_by_fund,
+                          rev_by_fund=rev_by_fund,
+                          total_revenue=total_revenue,
+                          total_expenditure=total_expenditure,
+                          net_position=net_position,
+                          budget_balance=budget_balance,
+                          title='Financial Summary')
 
 
 @app.route('/map')
