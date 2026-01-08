@@ -1419,7 +1419,7 @@ def change_orders():
     # Get projects with budget changes
     cursor.execute('''
         SELECT
-            id, title, school_name, vendor_name,
+            contract_id, title, school_name, vendor_name,
             original_amount, current_amount,
             (current_amount - original_amount) as change_amount,
             CASE WHEN original_amount > 0
@@ -1466,7 +1466,7 @@ def risk_dashboard():
     # Get high-risk projects (delayed, over budget, or both)
     cursor.execute('''
         SELECT
-            id, title, school_name, vendor_name, status,
+            contract_id, title, school_name, vendor_name, status,
             current_amount, percent_complete,
             is_delayed, delay_days,
             is_over_budget, budget_variance_pct,
@@ -1541,7 +1541,7 @@ def analytics():
             surtax_category,
             COUNT(*) as project_count,
             SUM(current_amount) as total_budget,
-            SUM(amount_paid) as total_spent,
+            SUM(total_paid) as total_spent,
             AVG(percent_complete) as avg_completion
         FROM contracts
         WHERE is_deleted = 0 AND surtax_category IS NOT NULL
@@ -1605,7 +1605,7 @@ def public_portal():
         SELECT
             COUNT(*) as total_projects,
             SUM(current_amount) as total_budget,
-            SUM(amount_paid) as total_spent,
+            SUM(total_paid) as total_spent,
             SUM(CASE WHEN status = 'Complete' THEN 1 ELSE 0 END) as completed
         FROM contracts
         WHERE is_deleted = 0 AND surtax_category IS NOT NULL
@@ -1640,7 +1640,7 @@ def alerts():
 
     # Delayed projects
     cursor.execute('''
-        SELECT id, title, delay_days
+        SELECT contract_id, title, delay_days
         FROM contracts
         WHERE is_deleted = 0 AND is_delayed = 1
         ORDER BY delay_days DESC
@@ -1651,12 +1651,12 @@ def alerts():
             'type': 'warning',
             'title': f"Project Delayed: {row['title'][:40]}",
             'message': f"{row['delay_days']} days behind schedule",
-            'project_id': row['id']
+            'project_id': row['contract_id']
         })
 
     # Over budget projects
     cursor.execute('''
-        SELECT id, title, budget_variance_pct
+        SELECT contract_id, title, budget_variance_pct
         FROM contracts
         WHERE is_deleted = 0 AND is_over_budget = 1
         ORDER BY budget_variance_pct DESC
@@ -1667,7 +1667,7 @@ def alerts():
             'type': 'danger',
             'title': f"Over Budget: {row['title'][:40]}",
             'message': f"{row['budget_variance_pct']:.1f}% over budget",
-            'project_id': row['id']
+            'project_id': row['contract_id']
         })
 
     conn.close()
