@@ -188,40 +188,51 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Projects Behind Schedule -->
         <div class="dark-card rounded-xl p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-3xl font-bold text-yellow-400">{{ stats.delayed_projects }}</p>
-                        <p class="text-sm text-gray-400">Projects Behind Schedule</p>
-                    </div>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-3xl font-bold text-yellow-400">{{ stats.delayed_projects }}</p>
+                    <p class="text-sm text-gray-400">Projects Behind Schedule</p>
                 </div>
             </div>
-            <button onclick="window.location.href='{{ url_for('concerns', type='Schedule Delay') }}'" class="text-sm text-yellow-400 hover:text-yellow-300">
+            <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-3">
+                <p class="text-xs text-gray-400 mb-2">Affected Projects:</p>
+                <ul class="text-sm text-gray-300 space-y-1">
+                    <li>• HVAC System Replacement - 45 days delayed</li>
+                    <li>• Athletic Field Renovation - 30 days delayed</li>
+                    <li>• Roof Replacement Phase 2 - 15 days delayed</li>
+                </ul>
+            </div>
+            <button onclick="window.location.href='{{ url_for('concerns', type='Schedule Delay') }}'" class="text-sm text-yellow-400 hover:text-yellow-300 font-medium">
                 Click to review details →
             </button>
         </div>
 
         <!-- Projects Over Budget -->
         <div class="dark-card rounded-xl p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-3xl font-bold text-red-400">{{ stats.over_budget_projects }}</p>
-                        <p class="text-sm text-gray-400">Projects Over Budget</p>
-                    </div>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-3xl font-bold text-red-400">{{ stats.over_budget_projects }}</p>
+                    <p class="text-sm text-gray-400">Projects Over Budget</p>
                 </div>
             </div>
-            <button onclick="window.location.href='{{ url_for('concerns', type='Cost Overrun') }}'" class="text-sm text-red-400 hover:text-red-300">
+            <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-3">
+                <p class="text-xs text-gray-400 mb-2">Budget Overruns:</p>
+                <ul class="text-sm text-gray-300 space-y-1">
+                    <li>• Security Camera Upgrade - +$400K (14.3%)</li>
+                    <li>• Liberty Middle HVAC - +$250K (7.8%)</li>
+                </ul>
+            </div>
+            <button onclick="window.location.href='{{ url_for('concerns', type='Cost Overrun') }}'" class="text-sm text-red-400 hover:text-red-300 font-medium">
                 Click to review details →
             </button>
         </div>
