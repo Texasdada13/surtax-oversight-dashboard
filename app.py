@@ -98,7 +98,8 @@ def get_overview_stats():
             COUNT(CASE WHEN status = 'Active' THEN 1 END) as active_projects,
             COUNT(CASE WHEN status = 'Completed' THEN 1 END) as completed_projects,
             COUNT(CASE WHEN is_delayed = 1 THEN 1 END) as delayed_projects,
-            COUNT(CASE WHEN is_over_budget = 1 THEN 1 END) as over_budget_projects
+            COUNT(CASE WHEN is_over_budget = 1 THEN 1 END) as over_budget_projects,
+            AVG(COALESCE(percent_complete, 0)) as avg_completion
         FROM contracts
         WHERE is_deleted = 0
         AND surtax_category IS NOT NULL
@@ -111,6 +112,7 @@ def get_overview_stats():
     stats['completed_projects'] = row['completed_projects'] or 0
     stats['delayed_projects'] = row['delayed_projects'] or 0
     stats['over_budget_projects'] = row['over_budget_projects'] or 0
+    stats['avg_completion'] = row['avg_completion'] or 0
 
     # Calculate remaining
     stats['total_remaining'] = stats['total_budget'] - stats['total_spent']
