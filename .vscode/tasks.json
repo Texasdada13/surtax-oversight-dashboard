@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Dashboard",
+            "type": "shell",
+            "command": "${workspaceFolder}/start_dashboard.bat",
+            "windows": {
+                "command": "${workspaceFolder}\\start_dashboard.bat"
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated",
+                "showReuseMessage": false
+            },
+            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        }
+    ]
+}
