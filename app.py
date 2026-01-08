@@ -1651,6 +1651,66 @@ def financials():
                           title='Financial Summary')
 
 
+@app.route('/capital-projects')
+def capital_projects():
+    """Capital construction projects page."""
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Get all capital projects
+    cursor.execute('''
+        SELECT
+            project_code,
+            project_name,
+            project_type,
+            location,
+            address,
+            budget_amount,
+            spent_to_date,
+            start_date,
+            estimated_completion,
+            status,
+            capacity,
+            num_classrooms,
+            num_labs,
+            construction_manager,
+            cm_contract_amount,
+            description,
+            data_source,
+            source_url
+        FROM capital_projects
+        ORDER BY budget_amount DESC NULLS LAST
+    ''')
+    projects = cursor.fetchall()
+
+    # Get summary stats
+    cursor.execute('''
+        SELECT
+            COUNT(*) as total_projects,
+            SUM(CASE WHEN budget_amount IS NOT NULL THEN budget_amount ELSE 0 END) as total_budget,
+            SUM(CASE WHEN budget_amount IS NOT NULL THEN 1 ELSE 0 END) as projects_with_budget,
+            SUM(spent_to_date) as total_spent
+        FROM capital_projects
+    ''')
+    stats = cursor.fetchone()
+
+    # Get projects by status
+    cursor.execute('''
+        SELECT status, COUNT(*) as count
+        FROM capital_projects
+        GROUP BY status
+    ''')
+    status_counts = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('surtax/capital_projects.html',
+                          projects=projects,
+                          stats=stats,
+                          status_counts=status_counts,
+                          title='Capital Projects')
+
+
 @app.route('/map')
 def map_view():
     """Geographic map view of projects."""
