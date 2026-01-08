@@ -1,0 +1,818 @@
+{% extends "surtax/base.html" %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<nav class="flex items-center text-sm text-gray-500 mb-6">
+    <a href="{{ url_for('index') }}" class="hover:text-gray-700">Home</a>
+    <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    <a href="{{ url_for('projects') }}" class="hover:text-gray-700">Projects</a>
+    <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    <span class="text-gray-900 font-medium">{{ project.title[:50] }}{% if project.title|length > 50 %}...{% endif %}</span>
+</nav>
+
+<!-- Data Source Indicator -->
+{% if project.data_source and 'Generated' in project.data_source %}
+<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
+    <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div class="flex-1">
+            <p class="text-sm font-semibold text-yellow-800">Data Source Notice</p>
+            <p class="text-sm text-yellow-700 mt-1">
+                Some information on this page contains <strong>generated demonstration data</strong> and requires verification with official Marion County records.
+                Sections marked with <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">Needs Public Records</span> should be updated with actual data.
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Project Header with Risk Indicators -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6 border-l-4" style="border-left-color: {{ project.color or '#3B82F6' }};">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+        <div class="flex-1">
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+                <h1 class="text-3xl font-bold text-gray-900">{{ project.title }}</h1>
+
+                <!-- Risk Score Badge -->
+                {% if project.risk_score %}
+                <span class="px-3 py-1 text-sm font-semibold rounded-full
+                    {% if project.risk_score == 'High' %}bg-red-100 text-red-700
+                    {% elif project.risk_score == 'Medium' %}bg-yellow-100 text-yellow-700
+                    {% else %}bg-green-100 text-green-700{% endif %}">
+                    {{ project.risk_score }} Risk
+                </span>
+                {% endif %}
+
+                {% if project.priority_level %}
+                <span class="px-3 py-1 text-sm font-semibold bg-purple-100 text-purple-700 rounded-full">
+                    {{ project.priority_level }} Priority
+                </span>
+                {% endif %}
+
+                {% if project.is_delayed %}
+                <span class="px-3 py-1 text-sm font-semibold bg-red-100 text-red-700 rounded-full">Schedule Delay</span>
+                {% endif %}
+
+                {% if project.is_over_budget %}
+                <span class="px-3 py-1 text-sm font-semibold bg-orange-100 text-orange-700 rounded-full">Over Budget</span>
+                {% endif %}
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
+                <span class="flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full" style="background-color: {{ project.color or '#3B82F6' }};"></span>
+                    {{ project.category_name or project.surtax_category }}
+                    {% if project.surtax_subcategory %} / {{ project.surtax_subcategory }}{% endif %}
+                </span>
+                {% if project.school_name %}
+                <span class="flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    {{ project.school_name }}
+                </span>
+                {% endif %}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                    {% if project.status == 'Active' %}bg-blue-100 text-blue-700
+                    {% elif project.status == 'Completed' %}bg-green-100 text-green-700
+                    {% elif project.status == 'Proposed' %}bg-gray-100 text-gray-700
+                    {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                    {{ project.status }}
+                </span>
+                <span class="text-gray-400">ID: {{ project.contract_id }}</span>
+            </div>
+
+            <!-- Project Purpose -->
+            {% if project.project_purpose %}
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                <p class="text-sm font-semibold text-blue-900 mb-1">Project Purpose</p>
+                <p class="text-sm text-blue-800">{{ project.project_purpose }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Action Buttons and Progress -->
+        <div class="flex flex-col items-center gap-4">
+            <div class="relative w-24 h-24">
+                <svg class="w-24 h-24 transform -rotate-90">
+                    <circle cx="48" cy="48" r="42" stroke="#E5E7EB" stroke-width="8" fill="none"/>
+                    <circle cx="48" cy="48" r="42"
+                            stroke="{% if project.percent_complete >= 75 %}#10B981{% elif project.percent_complete >= 50 %}#3B82F6{% else %}#F59E0B{% endif %}"
+                            stroke-width="8" fill="none"
+                            stroke-dasharray="{{ project.percent_complete * 2.64 }} 264"
+                            stroke-linecap="round"/>
+                </svg>
+                <span class="absolute inset-0 flex items-center justify-center text-2xl font-bold text-gray-900">
+                    {{ project.percent_complete|int }}%
+                </span>
+            </div>
+            <p class="text-sm text-gray-600 font-medium">Overall Complete</p>
+
+            <div class="flex gap-2">
+                <button id="watchBtn" onclick="toggleWatch('{{ project.contract_id }}')"
+                        class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all text-sm font-medium
+                               {% if is_watched %}bg-blue-50 border-blue-500 text-blue-700{% else %}border-gray-300 text-gray-600 hover:border-blue-400{% endif %}">
+                    <svg class="w-4 h-4" fill="{% if is_watched %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    <span id="watchText">{% if is_watched %}Watching{% else %}Watch{% endif %}</span>
+                </button>
+
+                <button onclick="window.print()" class="px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-600 hover:border-gray-400 text-sm font-medium">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Financial Metrics -->
+<div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-blue-500">
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Original Budget</p>
+        <p class="text-xl font-bold text-gray-900 mt-1">{{ project.original_amount|currency_full }}</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 {% if project.is_over_budget %}border-orange-500{% else %}border-green-500{% endif %}">
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Current Budget</p>
+        <p class="text-xl font-bold {% if project.is_over_budget %}text-orange-600{% else %}text-gray-900{% endif %} mt-1">
+            {{ project.current_amount|currency_full }}
+        </p>
+        {% if project.is_over_budget %}
+        <p class="text-xs text-orange-600 mt-1">+{{ project.budget_variance_pct|percentage }} over</p>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-purple-500">
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Spent to Date</p>
+        <p class="text-xl font-bold text-gray-900 mt-1">{{ project.total_paid|currency_full }}</p>
+        {% if project.current_amount > 0 %}
+        <p class="text-xs text-gray-500 mt-1">{{ (project.total_paid / project.current_amount * 100)|percentage }} of budget</p>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-emerald-500">
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Remaining</p>
+        <p class="text-xl font-bold text-gray-900 mt-1">{{ project.remaining_balance|currency_full }}</p>
+    </div>
+
+    {% if project.square_footage %}
+    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-indigo-500">
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Square Footage</p>
+        <p class="text-xl font-bold text-gray-900 mt-1">{{ "{:,}".format(project.square_footage|int) }}</p>
+        <p class="text-xs text-gray-500 mt-1">sq ft</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-pink-500">
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Cost Per Sq Ft</p>
+        <p class="text-xl font-bold text-gray-900 mt-1">${{ "%.2f"|format(project.cost_per_sqft or 0) }}</p>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-yellow-500">
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Change Orders</p>
+        <p class="text-xl font-bold text-gray-900 mt-1">{{ project.change_order_count }}</p>
+        {% if project.total_change_order_amount > 0 %}
+        <p class="text-xs text-orange-600 mt-1">+{{ project.total_change_order_amount|currency }}</p>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-gray-400">
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Inspections</p>
+        <p class="text-xl font-bold text-gray-900 mt-1">{{ project.inspections|length }}</p>
+        <p class="text-xs text-gray-500 mt-1">completed</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Tabbed Interface -->
+<div class="bg-white rounded-xl shadow-sm mb-6">
+    <!-- Tab Headers -->
+    <div class="border-b border-gray-200 overflow-x-auto">
+        <nav class="flex space-x-1 px-6 pt-4" role="tablist">
+            <button onclick="switchTab('overview')" id="tab-overview" class="tab-button active px-4 py-3 text-sm font-medium border-b-2 transition-colors">
+                Overview
+            </button>
+            <button onclick="switchTab('financials')" id="tab-financials" class="tab-button px-4 py-3 text-sm font-medium border-b-2 transition-colors">
+                Financials
+            </button>
+            <button onclick="switchTab('schedule')" id="tab-schedule" class="tab-button px-4 py-3 text-sm font-medium border-b-2 transition-colors">
+                Schedule & Phases
+                {% if project.phases and project.phases[0].data_source and 'Generated' in project.phases[0].data_source %}
+                <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800" title="Needs Public Records">📋</span>
+                {% endif %}
+            </button>
+            <button onclick="switchTab('quality')" id="tab-quality" class="tab-button px-4 py-3 text-sm font-medium border-b-2 transition-colors">
+                Quality & Safety
+                {% if project.inspections and project.inspections[0].data_source and 'Generated' in project.inspections[0].data_source %}
+                <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800" title="Needs Public Records">📋</span>
+                {% endif %}
+            </button>
+            <button onclick="switchTab('contractor')" id="tab-contractor" class="tab-button px-4 py-3 text-sm font-medium border-b-2 transition-colors">
+                Contractor
+                {% if project.contractor_performance and project.contractor_performance.data_source and 'Generated' in project.contractor_performance.data_source %}
+                <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800" title="Needs Public Records">📋</span>
+                {% endif %}
+            </button>
+            <button onclick="switchTab('community')" id="tab-community" class="tab-button px-4 py-3 text-sm font-medium border-b-2 transition-colors">
+                Community
+                {% if project.community_meetings and project.community_meetings[0].data_source and 'Generated' in project.community_meetings[0].data_source %}
+                <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800" title="Needs Public Records">📋</span>
+                {% endif %}
+            </button>
+            <button onclick="switchTab('committee')" id="tab-committee" class="tab-button px-4 py-3 text-sm font-medium border-b-2 transition-colors">
+                Committee Actions
+                {% if project.committee_actions and project.committee_actions[0].data_source and 'Generated' in project.committee_actions[0].data_source %}
+                <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800" title="Needs Public Records">📋</span>
+                {% endif %}
+            </button>
+            <button onclick="switchTab('documents')" id="tab-documents" class="tab-button px-4 py-3 text-sm font-medium border-b-2 transition-colors">
+                Documents
+            </button>
+        </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="p-6">
+        <!-- Overview Tab -->
+        <div id="content-overview" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Project Scope -->
+                    {% if project.project_scope %}
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Project Scope</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-gray-700">{{ project.project_scope }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Community Impact -->
+                    {% if project.community_impact %}
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Community Impact</h3>
+                        <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                            <p class="text-gray-700">{{ project.community_impact }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Schedule Overview -->
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Schedule</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <p class="text-xs text-gray-500 mb-1">Start Date</p>
+                                <p class="font-medium text-gray-900">{{ project.start_date|date_format }}</p>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <p class="text-xs text-gray-500 mb-1">Original End</p>
+                                <p class="font-medium text-gray-900">{{ project.original_end_date|date_format }}</p>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3 {% if project.is_delayed %}bg-red-50{% endif %}">
+                                <p class="text-xs text-gray-500 mb-1">Current End</p>
+                                <p class="font-medium {% if project.is_delayed %}text-red-600{% else %}text-gray-900{% endif %}">
+                                    {{ project.current_end_date|date_format }}
+                                </p>
+                            </div>
+                            {% if project.is_delayed %}
+                            <div class="bg-red-50 rounded-lg p-3">
+                                <p class="text-xs text-gray-500 mb-1">Delay</p>
+                                <p class="font-medium text-red-600">{{ project.delay_days }} days</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Quick Facts -->
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Quick Facts</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-start">
+                                <span class="text-sm text-gray-600">Contract ID</span>
+                                <span class="text-sm font-medium text-gray-900">{{ project.contract_id }}</span>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <span class="text-sm text-gray-600">Status</span>
+                                <span class="px-2 py-0.5 text-xs rounded-full
+                                    {% if project.status == 'Active' %}bg-blue-100 text-blue-700
+                                    {% elif project.status == 'Completed' %}bg-green-100 text-green-700
+                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    {{ project.status }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <span class="text-sm text-gray-600">Priority</span>
+                                <span class="text-sm font-medium text-gray-900">{{ project.priority_level or 'Medium' }}</span>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <span class="text-sm text-gray-600">Risk Score</span>
+                                <span class="px-2 py-0.5 text-xs rounded-full
+                                    {% if project.risk_score == 'High' %}bg-red-100 text-red-700
+                                    {% elif project.risk_score == 'Medium' %}bg-yellow-100 text-yellow-700
+                                    {% else %}bg-green-100 text-green-700{% endif %}">
+                                    {{ project.risk_score or 'Low' }}
+                                </span>
+                            </div>
+                            {% if project.vendor_name %}
+                            <div class="flex justify-between items-start">
+                                <span class="text-sm text-gray-600">Contractor</span>
+                                <span class="text-sm font-medium text-gray-900">{{ project.vendor_name }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="flex justify-between items-start">
+                                <span class="text-sm text-gray-600">Completion</span>
+                                <span class="text-sm font-medium text-gray-900">{{ project.percent_complete|int }}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Funding Sources -->
+                    {% if project.funding_sources_dict %}
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Funding Sources</h3>
+                        <div class="space-y-2">
+                            {% for source, amount in project.funding_sources_dict.items() %}
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">{{ source }}</span>
+                                <span class="text-sm font-medium text-gray-900">{{ amount|currency_full }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Financials Tab -->
+        <div id="content-financials" class="tab-content hidden">
+            <div class="space-y-6">
+                <h3 class="text-xl font-bold text-gray-900">Financial Details</h3>
+
+                <!-- Budget Breakdown -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6">
+                        <h4 class="font-semibold text-gray-900 mb-4">Budget Summary</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Original Amount</span>
+                                <span class="font-bold text-gray-900">{{ project.original_amount|currency_full }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Change Orders</span>
+                                <span class="font-bold {% if project.total_change_order_amount > 0 %}text-orange-600{% else %}text-gray-900{% endif %}">
+                                    {% if project.total_change_order_amount > 0 %}+{% endif %}{{ project.total_change_order_amount|currency_full }}
+                                </span>
+                            </div>
+                            <div class="border-t border-blue-200 pt-2 flex justify-between">
+                                <span class="text-gray-900 font-semibold">Current Budget</span>
+                                <span class="font-bold text-blue-700">{{ project.current_amount|currency_full }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6">
+                        <h4 class="font-semibold text-gray-900 mb-4">Spending Summary</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Total Paid</span>
+                                <span class="font-bold text-gray-900">{{ project.total_paid|currency_full }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Remaining Balance</span>
+                                <span class="font-bold text-gray-900">{{ project.remaining_balance|currency_full }}</span>
+                            </div>
+                            <div class="border-t border-green-200 pt-2 flex justify-between">
+                                <span class="text-gray-900 font-semibold">% Spent</span>
+                                <span class="font-bold text-green-700">{{ (project.total_paid / project.current_amount * 100)|percentage }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Orders Detail -->
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Change Orders ({{ project.change_orders|length }})</h4>
+                    {% if project.change_orders %}
+                    <div class="space-y-3">
+                        {% for co in project.change_orders %}
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ co.description or 'Change Order #' ~ loop.index }}</p>
+                                    <p class="text-sm text-gray-600 mt-1">{{ co.reason or 'No reason specified' }}</p>
+                                    <p class="text-xs text-gray-400 mt-1">Approved: {{ co.approved_date|date_format }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xl font-bold {% if co.amount > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+                                        {% if co.amount > 0 %}+{% endif %}{{ co.amount|currency_full }}
+                                    </p>
+                                    <span class="text-xs px-2 py-0.5 rounded-full
+                                        {% if co.status == 'Approved' %}bg-green-100 text-green-700
+                                        {% elif co.status == 'Pending' %}bg-yellow-100 text-yellow-700
+                                        {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                        {{ co.status }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">No change orders for this project</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule & Phases Tab -->
+        <div id="content-schedule" class="tab-content hidden">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Project Phases & Timeline</h3>
+
+            {% if project.phases %}
+            <div class="space-y-4">
+                {% for phase in project.phases %}
+                <div class="border border-gray-200 rounded-lg p-4
+                    {% if phase.status == 'Completed' %}bg-green-50 border-green-200
+                    {% elif phase.status == 'In Progress' %}bg-blue-50 border-blue-200
+                    {% endif %}">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center
+                                {% if phase.status == 'Completed' %}bg-green-500 text-white
+                                {% elif phase.status == 'In Progress' %}bg-blue-500 text-white
+                                {% else %}bg-gray-300 text-gray-600{% endif %}">
+                                {% if phase.status == 'Completed' %}
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                {% elif phase.status == 'In Progress' %}
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                                {% else %}
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">{{ phase.phase_name }}</h4>
+                                <p class="text-sm text-gray-600">{{ phase.start_date|date_format }} to {{ phase.end_date|date_format }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs px-2 py-1 rounded-full
+                                {% if phase.status == 'Completed' %}bg-green-100 text-green-700
+                                {% elif phase.status == 'In Progress' %}bg-blue-100 text-blue-700
+                                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                {{ phase.status }}
+                            </span>
+                            <p class="text-sm font-semibold text-gray-900 mt-1">{{ phase.percent_complete|int }}% Complete</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="h-2 rounded-full transition-all
+                            {% if phase.status == 'Completed' %}bg-green-500
+                            {% elif phase.status == 'In Progress' %}bg-blue-500
+                            {% else %}bg-gray-400{% endif %}"
+                            style="width: {{ phase.percent_complete }}%">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">No phase information available</p>
+            {% endif %}
+
+            <!-- Milestones -->
+            {% if project.milestones %}
+            <div class="mt-8">
+                <h4 class="font-semibold text-gray-900 mb-4">Key Milestones</h4>
+                <div class="space-y-3">
+                    {% for milestone in project.milestones %}
+                    <div class="flex items-start gap-4 p-3 bg-gray-50 rounded-lg">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center
+                            {% if milestone.status == 'Completed' %}bg-green-100 text-green-600
+                            {% elif milestone.status == 'In Progress' %}bg-blue-100 text-blue-600
+                            {% else %}bg-gray-100 text-gray-400{% endif %}">
+                            {% if milestone.status == 'Completed' %}
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            {% else %}
+                            <span class="w-2 h-2 rounded-full bg-current"></span>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ milestone.title }}</p>
+                                    <p class="text-sm text-gray-500">{{ milestone.due_date|date_format }}</p>
+                                </div>
+                                <span class="text-xs px-2 py-0.5 rounded-full
+                                    {% if milestone.status == 'Completed' %}bg-green-100 text-green-700
+                                    {% elif milestone.status == 'In Progress' %}bg-blue-100 text-blue-700
+                                    {% elif milestone.status == 'Delayed' %}bg-red-100 text-red-700
+                                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                    {{ milestone.status }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Quality & Safety Tab -->
+        <div id="content-quality" class="tab-content hidden">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Inspections & Quality Assurance</h3>
+
+            {% if project.inspections %}
+            <div class="space-y-4">
+                {% for inspection in project.inspections %}
+                <div class="border border-gray-200 rounded-lg p-4
+                    {% if inspection.status == 'Passed' %}border-l-4 border-l-green-500
+                    {% elif inspection.status == 'Conditional' %}border-l-4 border-l-yellow-500
+                    {% else %}border-l-4 border-l-red-500{% endif %}">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ inspection.inspection_date|date_format }}</p>
+                            <p class="text-sm text-gray-600">Inspector: {{ inspection.inspector_name }}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm px-3 py-1 rounded-full
+                                {% if inspection.status == 'Passed' %}bg-green-100 text-green-700
+                                {% elif inspection.status == 'Conditional' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ inspection.status }}
+                            </span>
+                            {% if inspection.deficiencies_count > 0 %}
+                            <p class="text-sm text-orange-600 font-medium mt-1">{{ inspection.deficiencies_count }} deficiencies</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 rounded p-3">
+                        <p class="text-sm text-gray-700">{{ inspection.findings }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">No inspection records available</p>
+            {% endif %}
+        </div>
+
+        <!-- Contractor Tab -->
+        <div id="content-contractor" class="tab-content hidden">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Contractor Information & Performance</h3>
+
+            {% if project.vendor_name %}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">Contractor Details</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-sm text-gray-600">Company Name</p>
+                            <p class="font-medium text-gray-900">{{ project.vendor_name }}</p>
+                        </div>
+                        {% if project.vendor_id %}
+                        <div>
+                            <p class="text-sm text-gray-600">Vendor ID</p>
+                            <p class="font-medium text-gray-900">{{ project.vendor_id }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if project.contractor_performance %}
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                    <h4 class="font-semibold text-gray-900 mb-4">Performance Metrics</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-sm text-gray-600">Quality Score</p>
+                            <div class="flex items-center gap-2">
+                                <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ (project.contractor_performance.quality_score / 5 * 100)|int }}%"></div>
+                                </div>
+                                <span class="font-bold text-gray-900">{{ "%.1f"|format(project.contractor_performance.quality_score) }}/5.0</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-gray-600">Past Projects</p>
+                            <p class="font-medium text-gray-900">{{ project.contractor_performance.past_projects_count }} completed</p>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-gray-600">Deficiency Rate</p>
+                            <p class="font-medium text-gray-900">{{ "%.1f"|format(project.contractor_performance.deficiency_rate) }}%</p>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-gray-600">Local Hiring</p>
+                            <p class="font-medium text-gray-900">{{ "%.1f"|format(project.contractor_performance.local_hiring_percent) }}%</p>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-gray-600">Safety Record</p>
+                            <p class="font-medium text-gray-900">{{ project.contractor_performance.safety_record }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">No contractor information available</p>
+            {% endif %}
+        </div>
+
+        <!-- Community Tab -->
+        <div id="content-community" class="tab-content hidden">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Community Engagement</h3>
+
+            {% if project.community_meetings %}
+            <div class="space-y-4">
+                {% for meeting in project.community_meetings %}
+                <div class="border border-gray-200 rounded-lg p-5">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="font-semibold text-gray-900">Community Meeting - {{ meeting.meeting_date|date_format }}</p>
+                            <p class="text-sm text-gray-600">{{ meeting.attendees }} attendees</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div class="bg-green-50 border-l-4 border-green-400 p-3 rounded-r-lg">
+                            <p class="text-sm font-semibold text-green-900 mb-1">Feedback Summary</p>
+                            <p class="text-sm text-green-800">{{ meeting.feedback_summary }}</p>
+                        </div>
+
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-r-lg">
+                            <p class="text-sm font-semibold text-yellow-900 mb-1">Concerns Raised</p>
+                            <p class="text-sm text-yellow-800">{{ meeting.concerns_raised }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">No community engagement records available</p>
+            {% endif %}
+        </div>
+
+        <!-- Committee Actions Tab -->
+        <div id="content-committee" class="tab-content hidden">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Committee Actions & Decisions</h3>
+
+            {% if project.committee_actions %}
+            <div class="space-y-3">
+                {% for action in project.committee_actions %}
+                <div class="border border-gray-200 rounded-lg p-4
+                    {% if action.status == 'Completed' %}bg-green-50 border-green-200
+                    {% elif action.status == 'In Progress' %}bg-blue-50 border-blue-200
+                    {% elif action.status == 'Pending' %}bg-yellow-50 border-yellow-200
+                    {% endif %}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-900">{{ action.action_item }}</p>
+                            <div class="flex items-center gap-3 mt-2 text-sm text-gray-600">
+                                <span>Meeting: {{ action.meeting_date|date_format }}</span>
+                                {% if action.assigned_to %}
+                                <span>• Assigned to: {{ action.assigned_to }}</span>
+                                {% endif %}
+                                {% if action.due_date %}
+                                <span>• Due: {{ action.due_date|date_format }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <span class="text-xs px-3 py-1 rounded-full ml-4
+                            {% if action.status == 'Completed' %}bg-green-100 text-green-700
+                            {% elif action.status == 'In Progress' %}bg-blue-100 text-blue-700
+                            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                            {{ action.status }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">No committee actions recorded</p>
+            {% endif %}
+        </div>
+
+        <!-- Documents Tab -->
+        <div id="content-documents" class="tab-content hidden">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Project Documents</h3>
+
+            {% if project.documents %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for doc in project.documents %}
+                <a href="#" class="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-400 transition-all group">
+                    <div class="flex items-start gap-3">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-medium text-gray-900 truncate group-hover:text-blue-600">{{ doc.filename }}</p>
+                            <p class="text-sm text-gray-500">{{ doc.document_type or 'Document' }}</p>
+                            {% if doc.uploaded_at %}
+                            <p class="text-xs text-gray-400 mt-1">{{ doc.uploaded_at|date_format }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">No documents uploaded</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Ask About This Project -->
+<div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-sm p-6 text-white">
+    <div class="flex items-center justify-between">
+        <div>
+            <h3 class="text-lg font-bold mb-1">Have questions about this project?</h3>
+            <p class="text-sm text-blue-100">Ask the AI assistant for detailed analysis and insights.</p>
+        </div>
+        <a href="{{ url_for('ask') }}?q=Tell me about {{ project.title[:30] }}"
+           class="px-6 py-3 bg-white text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors">
+            Ask AI →
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+.tab-button {
+    border-bottom-color: transparent;
+    color: #6B7280;
+}
+.tab-button:hover {
+    color: #374151;
+    border-bottom-color: #D1D5DB;
+}
+.tab-button.active {
+    color: #2563EB;
+    border-bottom-color: #2563EB;
+}
+.tab-content {
+    animation: fadeIn 0.3s ease-in;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+function switchTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+
+    // Remove active state from all tabs
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+
+    // Show selected tab content
+    document.getElementById(`content-${tabName}`).classList.remove('hidden');
+
+    // Add active state to selected tab
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+}
+
+function toggleWatch(contractId) {
+    fetch(`/api/watchlist/toggle/${contractId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const btn = document.getElementById('watchBtn');
+                const text = document.getElementById('watchText');
+                if (data.is_watched) {
+                    btn.classList.remove('border-gray-300', 'text-gray-600');
+                    btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-700');
+                    btn.querySelector('svg').setAttribute('fill', 'currentColor');
+                    text.textContent = 'Watching';
+                } else {
+                    btn.classList.add('border-gray-300', 'text-gray-600');
+                    btn.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-700');
+                    btn.querySelector('svg').setAttribute('fill', 'none');
+                    text.textContent = 'Watch';
+                }
+            }
+        });
+}
+</script>
+{% endblock %}

@@ -346,6 +346,59 @@ def get_project_detail(contract_id):
     ''', (contract_id,))
     project['documents'] = [dict(row) for row in cursor.fetchall()]
 
+    # Project phases
+    cursor.execute('''
+        SELECT * FROM project_phases
+        WHERE contract_id = ?
+        ORDER BY start_date ASC
+    ''', (contract_id,))
+    project['phases'] = [dict(row) for row in cursor.fetchall()]
+
+    # Inspection log
+    cursor.execute('''
+        SELECT * FROM inspection_log
+        WHERE contract_id = ?
+        ORDER BY inspection_date DESC
+    ''', (contract_id,))
+    project['inspections'] = [dict(row) for row in cursor.fetchall()]
+
+    # Community engagement
+    cursor.execute('''
+        SELECT * FROM community_engagement
+        WHERE contract_id = ?
+        ORDER BY meeting_date DESC
+    ''', (contract_id,))
+    project['community_meetings'] = [dict(row) for row in cursor.fetchall()]
+
+    # Committee actions
+    cursor.execute('''
+        SELECT * FROM committee_actions
+        WHERE contract_id = ?
+        ORDER BY meeting_date DESC
+    ''', (contract_id,))
+    project['committee_actions'] = [dict(row) for row in cursor.fetchall()]
+
+    # Contractor performance (if available)
+    if project.get('vendor_id'):
+        cursor.execute('''
+            SELECT * FROM contractor_performance
+            WHERE vendor_id = ?
+        ''', (project['vendor_id'],))
+        perf = cursor.fetchone()
+        project['contractor_performance'] = dict(perf) if perf else None
+
+    # Calculate additional metrics
+    if project.get('square_footage') and project.get('square_footage') > 0:
+        project['cost_per_sqft'] = project['current_amount'] / project['square_footage']
+
+    # Parse funding sources JSON if present
+    if project.get('funding_sources'):
+        import json
+        try:
+            project['funding_sources_dict'] = json.loads(project['funding_sources'])
+        except:
+            project['funding_sources_dict'] = {}
+
     conn.close()
     return project
 
@@ -533,7 +586,7 @@ def project_detail(contract_id):
     watchlist = session.get('watchlist', [])
     is_watched = contract_id in watchlist
 
-    return render_template('surtax/project_detail.html',
+    return render_template('surtax/project_detail_enhanced.html',
                           project=project,
                           is_watched=is_watched,
                           title=project['title'])
