@@ -1,0 +1,231 @@
+{% extends "surtax/base.html" %}
+
+{% block content %}
+<!-- Back Link -->
+<a href="{{ url_for('capital_projects') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-6">
+    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+    </svg>
+    Back to Capital Projects
+</a>
+
+<!-- Project Header -->
+<div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-8 mb-6 text-white">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div class="flex-1">
+            <div class="flex flex-wrap items-center gap-3 mb-3">
+                <h1 class="text-3xl font-bold">{{ project.project_name }}</h1>
+                {% if project.status == 'Under Construction' %}
+                <span class="px-3 py-1 bg-green-500 text-white text-sm font-semibold rounded-full shadow">{{ project.status }}</span>
+                {% elif project.status == 'Planning/Design' or project.status == 'Planning' %}
+                <span class="px-3 py-1 bg-yellow-500 text-white text-sm font-semibold rounded-full shadow">{{ project.status }}</span>
+                {% elif project.status == 'Completed' %}
+                <span class="px-3 py-1 bg-gray-700 text-white text-sm font-semibold rounded-full shadow">{{ project.status }}</span>
+                {% else %}
+                <span class="px-3 py-1 bg-blue-300 text-blue-900 text-sm font-semibold rounded-full shadow">{{ project.status }}</span>
+                {% endif %}
+            </div>
+            <div class="flex flex-wrap items-center gap-4 text-blue-100">
+                <span class="flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    {{ project.project_type }}
+                </span>
+                {% if project.location %}
+                <span class="flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    {{ project.location }}
+                </span>
+                {% endif %}
+                <span class="text-xs">Project Code: {{ project.project_code }}</span>
+            </div>
+        </div>
+
+        <!-- Budget Display -->
+        <div class="text-right">
+            {% if project.budget_amount %}
+            <p class="text-4xl font-bold">{{ project.budget_amount|currency_full }}</p>
+            <p class="text-blue-100 text-sm mt-1">Total Budget</p>
+            {% else %}
+            <p class="text-2xl font-semibold text-blue-200">Budget TBD</p>
+            <p class="text-blue-100 text-sm mt-1">Pending GMP</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Project Details Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Main Details Card -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Description -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Project Description</h2>
+            <p class="text-gray-700 leading-relaxed">{{ project.description }}</p>
+        </div>
+
+        <!-- Project Specifications -->
+        {% if project.capacity or project.num_classrooms or project.num_labs or project.square_footage %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Project Specifications</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {% if project.capacity %}
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <p class="text-3xl font-bold text-blue-600">{{ '{:,}'.format(project.capacity) }}</p>
+                    <p class="text-sm text-gray-600 mt-1">Student Capacity</p>
+                </div>
+                {% endif %}
+                {% if project.num_classrooms %}
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <p class="text-3xl font-bold text-green-600">{{ project.num_classrooms }}</p>
+                    <p class="text-sm text-gray-600 mt-1">Classrooms</p>
+                </div>
+                {% endif %}
+                {% if project.num_labs %}
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <p class="text-3xl font-bold text-purple-600">{{ project.num_labs }}</p>
+                    <p class="text-sm text-gray-600 mt-1">Labs</p>
+                </div>
+                {% endif %}
+                {% if project.square_footage %}
+                <div class="text-center p-4 bg-orange-50 rounded-lg">
+                    <p class="text-3xl font-bold text-orange-600">{{ '{:,}'.format(project.square_footage) }}</p>
+                    <p class="text-sm text-gray-600 mt-1">Square Feet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Contractor Information -->
+        {% if project.construction_manager or project.contractor %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Contractor Information</h2>
+            <div class="space-y-3">
+                {% if project.construction_manager %}
+                <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                    <span class="text-gray-600">Construction Manager</span>
+                    <span class="font-semibold text-gray-900">{{ project.construction_manager }}</span>
+                </div>
+                {% endif %}
+                {% if project.cm_contract_amount %}
+                <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                    <span class="text-gray-600">CM Contract Amount</span>
+                    <span class="font-semibold text-gray-900">{{ project.cm_contract_amount|currency_full }}</span>
+                </div>
+                {% endif %}
+                {% if project.contractor %}
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">General Contractor</span>
+                    <span class="font-semibold text-gray-900">{{ project.contractor }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Timeline Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Project Timeline</h2>
+            <div class="space-y-4">
+                {% if project.start_date %}
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Start Date</p>
+                    <p class="font-semibold text-gray-900">{{ project.start_date }}</p>
+                </div>
+                {% endif %}
+                {% if project.estimated_completion %}
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Estimated Completion</p>
+                    <p class="font-semibold text-gray-900">{{ project.estimated_completion }}</p>
+                </div>
+                {% endif %}
+                {% if project.actual_completion %}
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Actual Completion</p>
+                    <p class="font-semibold text-green-600">{{ project.actual_completion }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Budget Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Budget Information</h2>
+            <div class="space-y-3">
+                {% if project.budget_amount %}
+                <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                    <span class="text-gray-600">Total Budget</span>
+                    <span class="font-bold text-gray-900">{{ project.budget_amount|currency_full }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                    <span class="text-gray-600">Spent to Date</span>
+                    <span class="font-semibold text-gray-900">{{ (project.spent_to_date or 0)|currency_full }}</span>
+                </div>
+                {% if project.budget_amount %}
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Remaining</span>
+                    <span class="font-semibold text-green-600">{{ (project.budget_amount - (project.spent_to_date or 0))|currency_full }}</span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="pt-3">
+                    <div class="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>Budget Progress</span>
+                        <span>{{ (((project.spent_to_date or 0) / project.budget_amount * 100) if project.budget_amount > 0 else 0)|round|int }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ (((project.spent_to_date or 0) / project.budget_amount * 100) if project.budget_amount > 0 else 0)|round|int }}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Location Card -->
+        {% if project.address %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Location</h2>
+            <div class="space-y-2">
+                <p class="text-gray-700">{{ project.address }}</p>
+                <a href="https://www.google.com/maps/search/?api=1&query={{ project.address|urlencode }}"
+                   target="_blank"
+                   class="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    View on Map
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Data Source Card -->
+        <div class="bg-gray-50 rounded-xl border border-gray-200 p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-3">Data Source</h2>
+            <p class="text-sm text-gray-600 mb-3">{{ project.data_source }}</p>
+            {% if project.source_url %}
+            <a href="{{ project.source_url }}" target="_blank" class="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                View Source Document
+            </a>
+            {% endif %}
+            {% if project.imported_date %}
+            <p class="text-xs text-gray-500 mt-3">Last updated: {{ project.last_updated[:10] if project.last_updated else 'N/A' }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

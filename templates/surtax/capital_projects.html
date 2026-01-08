@@ -49,12 +49,13 @@
     <!-- Project Cards -->
     <div class="space-y-4">
         {% for project in projects %}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <a href="{{ url_for('capital_project_detail', project_code=project.project_code) }}" class="block">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer">
             <!-- Project Header -->
             <div class="flex justify-between items-start mb-4">
                 <div class="flex-1">
                     <div class="flex items-center gap-3">
-                        <h3 class="text-xl font-bold text-gray-900">{{ project.project_name }}</h3>
+                        <h3 class="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">{{ project.project_name }}</h3>
                         {% if project.status == 'Under Construction' %}
                         <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">{{ project.status }}</span>
                         {% elif project.status == 'Planning/Design' %}
@@ -153,6 +154,7 @@
                 {% endif %}
             </div>
         </div>
+        </a>
         {% endfor %}
     </div>
 

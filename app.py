@@ -1711,6 +1711,31 @@ def capital_projects():
                           title='Capital Projects')
 
 
+@app.route('/project/<project_code>')
+def capital_project_detail(project_code):
+    """Individual capital project detail page."""
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Get project details
+    cursor.execute('''
+        SELECT *
+        FROM capital_projects
+        WHERE project_code = ?
+    ''', (project_code,))
+    project = cursor.fetchone()
+
+    if not project:
+        conn.close()
+        return "Project not found", 404
+
+    conn.close()
+
+    return render_template('surtax/capital_project_detail.html',
+                          project=project,
+                          title=project['project_name'])
+
+
 @app.route('/map')
 def map_view():
     """Geographic map view of projects."""

@@ -90,7 +90,7 @@
                     {% for order in change_orders %}
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4">
-                            <a href="{{ url_for('project_detail', contract_id=order.id) }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                            <a href="{{ url_for('project_detail', contract_id=order.contract_id) }}" class="text-blue-600 hover:text-blue-800 font-medium">
                                 {{ order.title[:50] }}{% if order.title|length > 50 %}...{% endif %}
                             </a>
                             {% if order.school_name %}
