@@ -111,7 +111,7 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-4">
-                            <a href="{{ url_for('project_detail', contract_id=project.id) }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                            <a href="{{ url_for('project_detail', contract_id=project.contract_id) }}" class="text-blue-600 hover:text-blue-800 font-medium">
                                 {{ project.title[:45] }}{% if project.title|length > 45 %}...{% endif %}
                             </a>
                             {% if project.school_name %}
