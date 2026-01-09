@@ -1,2 +1,12 @@
+# Core Flask dependencies
 Flask==3.0.0
-sqlite3
+Werkzeug>=3.0.0
+
+# Database (sqlite3 is built into Python, no pip install needed)
+# sqlite3 is part of the Python standard library
+
+# Screenshot tool dependencies
+playwright>=1.40.0
+
+# Optional: for better async support
+asyncio-compat>=0.1.0
