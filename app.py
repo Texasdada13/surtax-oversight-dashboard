@@ -810,9 +810,15 @@ def school_detail(school_id):
 
 @app.route('/ask')
 def ask():
-    """AI chatbot interface."""
+    """AI chatbot interface - persona-aware."""
+    persona = g.get('persona', 'committee')
+
+    # Pass guided prompts to committee members
+    guided_prompts = GUIDED_AI_PROMPTS if persona == 'committee' else []
+
     return render_template('surtax/ask.html',
-                          title='Ask a Question')
+                          guided_prompts=guided_prompts,
+                          title='Ask AI')
 
 
 @app.route('/api/ask', methods=['POST'])
