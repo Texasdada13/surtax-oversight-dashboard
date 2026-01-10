@@ -5,7 +5,13 @@
 <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
     <div>
         <h1 class="text-3xl font-bold text-gray-900">Meeting Mode</h1>
-        <p class="text-gray-500 mt-1">Prepare for your quarterly oversight committee meeting</p>
+        <p class="text-gray-500 mt-1">
+            {% if current_persona == 'committee' %}
+            Your meeting preparation dashboard
+            {% else %}
+            Prepare for your quarterly oversight committee meeting
+            {% endif %}
+        </p>
     </div>
     <div class="flex gap-3 mt-4 md:mt-0">
         <a href="{{ url_for('meeting_present') }}"
@@ -18,29 +24,79 @@
     </div>
 </div>
 
-<!-- Quick Stats for Meeting -->
+<!-- Quick Stats for Meeting (larger for committee) -->
+{% set stat_size = 'text-4xl' if current_persona == 'committee' else 'text-3xl' %}
+{% set stat_padding = 'p-6' if current_persona == 'committee' else 'p-5' %}
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-xl shadow-sm p-5 text-center">
-        <p class="text-3xl font-bold text-gray-900">{{ stats.total_projects }}</p>
-        <p class="text-sm text-gray-500">Total Projects</p>
+    <div class="bg-white rounded-xl shadow-sm {{ stat_padding }} text-center">
+        <p class="{{ stat_size }} font-bold text-gray-900">{{ stats.total_projects }}</p>
+        <p class="text-sm text-gray-500 mt-1">Total Projects</p>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 text-center">
-        <p class="text-3xl font-bold text-blue-600">{{ stats.total_budget|currency }}</p>
-        <p class="text-sm text-gray-500">Total Budget</p>
+    <div class="bg-white rounded-xl shadow-sm {{ stat_padding }} text-center">
+        <p class="{{ stat_size }} font-bold text-blue-600">{{ stats.total_budget|currency }}</p>
+        <p class="text-sm text-gray-500 mt-1">Total Budget</p>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 text-center">
-        <p class="text-3xl font-bold {% if stats.on_track_projects == stats.active_projects %}text-green-600{% else %}text-yellow-600{% endif %}">
+    <div class="bg-white rounded-xl shadow-sm {{ stat_padding }} text-center">
+        <p class="{{ stat_size }} font-bold {% if stats.on_track_projects == stats.active_projects %}text-green-600{% else %}text-yellow-600{% endif %}">
             {{ stats.on_track_projects }}/{{ stats.active_projects }}
         </p>
-        <p class="text-sm text-gray-500">On Track</p>
+        <p class="text-sm text-gray-500 mt-1">On Track</p>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 text-center">
-        <p class="text-3xl font-bold {% if concerns|length > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+    <div class="bg-white rounded-xl shadow-sm {{ stat_padding }} text-center">
+        <p class="{{ stat_size }} font-bold {% if concerns|length > 0 %}text-red-600{% else %}text-green-600{% endif %}">
             {{ concerns|length }}
         </p>
-        <p class="text-sm text-gray-500">Concerns</p>
+        <p class="text-sm text-gray-500 mt-1">Concerns</p>
     </div>
 </div>
+
+<!-- Committee-specific: Guided AI Panel for Meeting -->
+{% if current_persona == 'committee' %}
+<div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-sm p-6 mb-6">
+    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+        </svg>
+        AI Meeting Assistant
+    </h2>
+    <p class="text-sm text-gray-600 mb-4">Get instant answers for meeting preparation</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <a href="{{ url_for('ask') }}?q=Summarize%20this%20agenda%20for%20the%20public"
+           class="flex items-center gap-3 p-4 bg-white border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all">
+            <svg class="w-8 h-8 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
+            </svg>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900">Summarize for public</p>
+                <p class="text-xs text-gray-500">Meeting overview</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('ask') }}?q=What%20are%20the%20top%203%20risks%20to%20discuss?"
+           class="flex items-center gap-3 p-4 bg-white border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all">
+            <svg class="w-8 h-8 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900">Top 3 risks</p>
+                <p class="text-xs text-gray-500">Key discussion points</p>
+            </div>
+        </a>
+
+        <a href="{{ url_for('ask') }}?q=Generate%20a%202-minute%20talking%20script"
+           class="flex items-center gap-3 p-4 bg-white border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all">
+            <svg class="w-8 h-8 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900">Talking script</p>
+                <p class="text-xs text-gray-500">2-minute summary</p>
+            </div>
+        </a>
+    </div>
+</div>
+{% endif %}
 
 <!-- Two Column Layout -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
