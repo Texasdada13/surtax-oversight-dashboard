@@ -562,16 +562,43 @@ def switch_persona(persona_id):
 
 @app.route('/')
 def index():
-    """Executive dashboard - main landing page."""
+    """Main landing page - persona-aware routing."""
     stats = get_overview_stats()
     categories = get_spending_by_category()
-    concerns = get_concerns()[:5]  # Top 5 concerns
+    concerns = get_concerns()
 
-    return render_template('surtax/executive_dashboard.html',
-                          stats=stats,
-                          categories=categories,
-                          concerns=concerns,
-                          title='Oversight Committee Portal')
+    # Persona-aware template selection
+    persona = g.get('persona', 'committee')
+
+    if persona == 'committee':
+        # Simplified view for committee members
+        # Calculate attention items
+        delayed_projects = sum(1 for c in concerns if 'delayed' in c.get('title', '').lower() or 'behind schedule' in c.get('title', '').lower())
+        overbudget_projects = sum(1 for c in concerns if 'over budget' in c.get('title', '').lower() or 'budget variance' in c.get('title', '').lower())
+
+        # Get examples (first 2 of each type)
+        delayed_list = [c.get('title', '') for c in concerns if 'delayed' in c.get('title', '').lower() or 'behind schedule' in c.get('title', '').lower()]
+        overbudget_list = [c.get('title', '') for c in concerns if 'over budget' in c.get('title', '').lower() or 'budget variance' in c.get('title', '').lower()]
+
+        delayed_examples = ', '.join(delayed_list[:2]) if delayed_list else ''
+        overbudget_examples = ', '.join(overbudget_list[:2]) if overbudget_list else ''
+
+        return render_template('surtax/committee_overview.html',
+                              stats=stats,
+                              categories=categories,
+                              concerns=concerns,
+                              delayed_projects=delayed_projects,
+                              overbudget_projects=overbudget_projects,
+                              delayed_examples=delayed_examples,
+                              overbudget_examples=overbudget_examples,
+                              title='Overview')
+    else:
+        # Full executive dashboard for staff
+        return render_template('surtax/executive_dashboard.html',
+                              stats=stats,
+                              categories=categories,
+                              concerns=concerns[:5],
+                              title='Oversight Committee Portal')
 
 
 @app.route('/overview')
