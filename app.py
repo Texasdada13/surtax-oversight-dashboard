@@ -10,9 +10,23 @@ import os
 import sys
 from pathlib import Path
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, jsonify, redirect, url_for, make_response, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, make_response, session, g, flash
 import logging
 import io
+
+# Import persona configuration
+from config.personas import (
+    ENABLE_PERSONA_SYSTEM,
+    PERSONAS,
+    get_visible_navigation,
+    get_icon_path,
+    GUIDED_AI_PROMPTS
+)
+from utils.persona_helpers import (
+    persona_can_see,
+    get_overview_template_for_persona,
+    should_hide_sidebar
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,6 +43,53 @@ def get_db():
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     return conn
+
+
+# ==================
+# PERSONA SYSTEM
+# ==================
+
+@app.before_request
+def inject_persona_context():
+    """Inject persona into session and g context before each request."""
+    if ENABLE_PERSONA_SYSTEM:
+        # Get persona from session, default to 'committee'
+        if 'persona' not in session:
+            session['persona'] = 'committee'
+
+        # Make persona available to all views via g
+        g.persona = session.get('persona', 'committee')
+        g.persona_config = PERSONAS.get(g.persona, PERSONAS['committee'])
+        g.navigation = get_visible_navigation(g.persona)
+        g.hide_sidebar = should_hide_sidebar(request.endpoint, g.persona)
+    else:
+        # Persona system disabled, use staff view (full access)
+        g.persona = 'staff'
+        g.persona_config = PERSONAS['staff']
+        g.navigation = get_visible_navigation('staff')
+        g.hide_sidebar = False
+
+
+@app.context_processor
+def inject_persona_to_templates():
+    """Make persona available in all templates."""
+    # Get concerns count for nav badge
+    concerns_count = 0
+    try:
+        concerns = get_concerns()
+        concerns_count = len(concerns)
+    except:
+        pass
+
+    return {
+        'current_persona': g.get('persona', 'committee'),
+        'persona_config': g.get('persona_config', {}),
+        'navigation_config': g.get('navigation', {}),
+        'personas_list': PERSONAS,
+        'concerns_count': concerns_count,
+        'get_icon_path': get_icon_path,
+        'hide_sidebar': g.get('hide_sidebar', False)
+    }
 
 
 # ==================
@@ -483,6 +544,21 @@ def get_recent_activity(limit=10):
 # ==================
 # ROUTES
 # ==================
+
+@app.route('/switch-persona/<persona_id>')
+def switch_persona(persona_id):
+    """Switch user persona (for testing/demo purposes)."""
+    if persona_id in PERSONAS:
+        session['persona'] = persona_id
+        flash(f'Switched to {PERSONAS[persona_id]["name"]} view', 'success')
+        logger.info(f'Persona switched to: {persona_id}')
+    else:
+        flash('Invalid persona', 'error')
+        logger.warning(f'Invalid persona switch attempted: {persona_id}')
+
+    # Redirect back to referrer or home
+    return redirect(request.referrer or url_for('index'))
+
 
 @app.route('/')
 def index():
