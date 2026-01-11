@@ -86,11 +86,11 @@
             <p class="text-sm text-gray-600">Total Budget</p>
         </div>
         <div class="text-center p-4 bg-blue-50 rounded-lg">
-            <p class="text-2xl font-bold text-blue-600">{{ stats.spent_to_date|currency }}</p>
+            <p class="text-2xl font-bold text-blue-600">{{ stats.total_spent|currency }}</p>
             <p class="text-sm text-gray-600">Spent to Date</p>
         </div>
         <div class="text-center p-4 bg-green-50 rounded-lg">
-            <p class="text-2xl font-bold text-green-600">{{ (stats.spent_to_date / stats.total_budget * 100)|round(1) if stats.total_budget > 0 else 0 }}%</p>
+            <p class="text-2xl font-bold text-green-600">{{ (stats.total_spent / stats.total_budget * 100)|round(1) if stats.total_budget > 0 else 0 }}%</p>
             <p class="text-sm text-gray-600">Budget Used</p>
         </div>
     </div>
@@ -102,7 +102,7 @@
         <div>
             <div class="flex justify-between text-sm mb-1">
                 <span class="text-gray-700">{{ cat.category_name or cat.surtax_category }}</span>
-                <span class="font-medium">{{ cat.total_amount|currency }} ({{ cat.percent_of_total|round }}%)</span>
+                <span class="font-medium">{{ cat.total_budget|currency }} ({{ cat.percent_of_total|round }}%)</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
                 <div class="h-2.5 rounded-full bg-blue-600" style="width: {{ cat.percent_of_total }}%"></div>

@@ -97,6 +97,7 @@
     </style>
 
     <!-- Alpine.js for interactive components -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -119,33 +120,75 @@
             </div>
 
             <!-- Navigation - Dynamic Based on Persona -->
-            <nav class="flex-1 overflow-y-auto sidebar-scroll p-3">
+            <nav class="flex-1 overflow-y-auto sidebar-scroll p-3" x-data="{ expandedSection: '' }">
                 {% for section_key, section in navigation_config.items() %}
-                    <!-- Section Header -->
-                    <div class="sidebar-section">{{ section.label }}</div>
+                    {% if section.get('collapsible', False) %}
+                    <!-- Collapsible Section -->
+                    <div class="mb-2">
+                        <!-- Collapsible Header (clickable) -->
+                        <button @click="expandedSection = expandedSection === '{{ section_key }}' ? '' : '{{ section_key }}'"
+                                class="sidebar-section w-full flex items-center justify-between cursor-pointer hover:bg-slate-700 rounded px-2 py-1 transition-colors">
+                            <span>{{ section['label'] }}</span>
+                            <svg class="w-4 h-4 transform transition-transform"
+                                 :class="expandedSection === '{{ section_key }}' ? 'rotate-180' : ''"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
 
-                    <!-- Section Items -->
-                    {% for item in section.items %}
-                    <a href="{{ item.path }}"
-                       class="sidebar-link {% if request.endpoint == item.id or request.path == item.path %}active{% endif %}">
-                        <!-- Icon -->
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ get_icon_path(item.icon) }}"></path>
-                        </svg>
+                        <!-- Collapsible Content -->
+                        <div x-show="expandedSection === '{{ section_key }}'"
+                             x-collapse
+                             class="mt-1">
+                            {% for item in section['items'] %}
+                            <a href="{{ item['path'] }}"
+                               class="sidebar-link {% if request.endpoint == item['id'] or request.path == item['path'] %}active{% endif %}">
+                                <!-- Icon -->
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ get_icon_path(item['icon']) }}"></path>
+                                </svg>
 
-                        <!-- Label -->
-                        <span class="sidebar-text">{{ item.label }}</span>
+                                <!-- Label -->
+                                <span class="sidebar-text">{{ item['label'] }}</span>
 
-                        <!-- Badge (for concerns count) -->
-                        {% if item.badge == 'concerns_count' and concerns_count > 0 %}
-                        <span class="badge badge-red ml-auto sidebar-text">{{ concerns_count }}</span>
-                        {% endif %}
-                    </a>
-                    {% endfor %}
+                                <!-- Badge (for concerns count) -->
+                                {% if item.get('badge') == 'concerns_count' and concerns_count > 0 %}
+                                <span class="badge badge-red ml-auto sidebar-text">{{ concerns_count }}</span>
+                                {% endif %}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Regular Section (non-collapsible) -->
+                    <div class="mb-2">
+                        <!-- Section Header -->
+                        <div class="sidebar-section">{{ section['label'] }}</div>
+
+                        <!-- Section Items -->
+                        {% for item in section['items'] %}
+                        <a href="{{ item['path'] }}"
+                           class="sidebar-link {% if request.endpoint == item['id'] or request.path == item['path'] %}active{% endif %}">
+                            <!-- Icon -->
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ get_icon_path(item['icon']) }}"></path>
+                            </svg>
+
+                            <!-- Label -->
+                            <span class="sidebar-text">{{ item['label'] }}</span>
+
+                            <!-- Badge (for concerns count) -->
+                            {% if item.get('badge') == 'concerns_count' and concerns_count > 0 %}
+                            <span class="badge badge-red ml-auto sidebar-text">{{ concerns_count }}</span>
+                            {% endif %}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
 
                     <!-- Section divider (except for last section) -->
                     {% if not loop.last %}
-                    <div class="my-2"></div>
+                    <div class="my-1 border-t border-slate-700"></div>
                     {% endif %}
                 {% endfor %}
             </nav>
